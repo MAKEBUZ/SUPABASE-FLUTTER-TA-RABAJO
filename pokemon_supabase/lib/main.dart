@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'views/home_view.dart';
 import 'models/team_pokemon.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initializate{
+    ur: SUPABASE_URL,
+    anonKey: SUPABASE_ANON_KEY,
+  };
   
   // Inicializar Hive
   await Hive.initFlutter();
