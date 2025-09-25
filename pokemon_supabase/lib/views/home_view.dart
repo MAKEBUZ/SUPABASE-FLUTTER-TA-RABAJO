@@ -18,13 +18,8 @@ class HomeView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Pokédex'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () => Get.to(() => TeamView()),
-            icon: const Icon(Icons.group),
-            tooltip: 'Ver Equipo',
-          ),
-        ],
+        backgroundColor: Colors.red.shade400,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -234,8 +229,12 @@ class HomeView extends StatelessWidget {
                                     onPressed: () async {
                                       if (await teamController.isInTeam(controller.pokemon.value!.id)) {
                                         await teamController.removeFromTeam(controller.pokemon.value!.id);
+                                        // Forzar actualización del estado
+                                        teamController.update();
                                       } else {
                                         await teamController.addToTeam(controller.pokemon.value!);
+                                        // Forzar actualización del estado
+                                        teamController.update();
                                       }
                                     },
                                     backgroundColor: isInTeam 

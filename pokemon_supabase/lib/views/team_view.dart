@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/team_controller.dart';
 import '../controllers/pokemon_controller.dart';
 import '../models/team_pokemon.dart';
+import 'team_pokemon_detail_view.dart';
 
 class TeamView extends StatelessWidget {
   final TeamController teamController = Get.put(TeamController());
@@ -113,76 +114,29 @@ class TeamView extends StatelessWidget {
                   );
                 }
 
-                return Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Lista de Pokemon del equipo
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text(
-                              'Equipo (${teamController.teamSize})',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              itemCount: teamController.team.length,
-                              itemBuilder: (context, index) {
-                                final pokemon = teamController.team[index];
-                                return _buildPokemonCard(pokemon);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Obx(() => Text(
+                        'Equipo (${teamController.team.length})',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )),
                     ),
-
-                    // Detalles del Pokemon seleccionado
+                    const SizedBox(height: 8),
                     Expanded(
-                      flex: 1,
-                      child: Obx(() {
-                        final selectedPokemon = teamController.selectedPokemon.value;
-                        if (selectedPokemon == null) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.touch_app,
-                                  size: 80,
-                                  color: Colors.red.shade300,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Selecciona un Pokémon',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.red.shade600,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'para ver sus detalles',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.red.shade400,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                        return _buildPokemonDetails(selectedPokemon);
-                      }),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        itemCount: teamController.team.length,
+                        itemBuilder: (context, index) {
+                          final pokemon = teamController.team[index];
+                          return _buildPokemonCard(pokemon);
+                        },
+                      ),
                     ),
                   ],
                 );
@@ -196,52 +150,58 @@ class TeamView extends StatelessWidget {
 
   Widget _buildPokemonCard(TeamPokemon pokemon) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: InkWell(
-        onTap: () => teamController.selectPokemon(pokemon),
+        onTap: () => _showPokemonDetailDialog(pokemon),
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                Colors.white,
-                Color(pokemonController.typeColors[pokemon.types.first] ?? 0xFF78C850)
-                    .withOpacity(0.1),
+                Color(pokemonController.typeColors[pokemon.types.first] ?? 0xFF78C850).withOpacity(0.1),
+                Color(pokemonController.typeColors[pokemon.types.first] ?? 0xFF78C850).withOpacity(0.05),
               ],
             ),
           ),
           child: Row(
             children: [
-              // Imagen
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  pokemon.imageUrl,
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.broken_image),
-                    );
-                  },
+              // Imagen del Pokemon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    pokemon.imageUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.broken_image, size: 40);
+                    },
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-
-              // Información
+              const SizedBox(width: 16),
+              
+              // Información del Pokemon
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,38 +209,47 @@ class TeamView extends StatelessWidget {
                     Text(
                       pokemon.name,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    Text(
+                      '#${pokemon.id}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Wrap(
                       spacing: 4,
-                      children: pokemon.types
-                          .map((type) => Chip(
-                                label: Text(
-                                  type,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                backgroundColor: Color(
-                                    pokemonController.typeColors[type] ?? 0xFF78C850),
-                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
-                              ))
-                          .toList(),
+                      children: pokemon.types.map((type) => 
+                        Chip(
+                          label: Text(
+                            type,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                          backgroundColor: Color(pokemonController.typeColors[type] ?? 0xFF78C850),
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        )
+                      ).toList(),
                     ),
                   ],
                 ),
               ),
-
-              // Botón eliminar
+              
+              // Botón de eliminar
               IconButton(
                 onPressed: () => _showRemovePokemonDialog(pokemon),
-                icon: const Icon(Icons.remove_circle_outline),
-                color: Colors.red.shade600,
+                icon: Icon(
+                  Icons.remove_circle,
+                  color: Colors.red.shade400,
+                  size: 28,
+                ),
                 tooltip: 'Eliminar del equipo',
               ),
             ],
@@ -288,6 +257,10 @@ class TeamView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showPokemonDetailDialog(TeamPokemon pokemon) {
+    Get.to(() => TeamPokemonDetailView(pokemon: pokemon));
   }
 
   Widget _buildPokemonDetails(TeamPokemon pokemon) {

@@ -1,4 +1,4 @@
-# pokemon_db
+# pokemon_supabase
 
 A new Flutter project.
 
