@@ -1,6 +1,6 @@
 {
-    "name": "pokemon_supabase",
-    "short_name": "pokemon_supabase",
+    "name": "pokemon_db",
+    "short_name": "pokemon_db",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
