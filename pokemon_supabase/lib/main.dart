@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'views/home_view.dart';
-import 'models/team_pokemon.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initializate{
-    ur: SUPABASE_URL,
-    anonKey: SUPABASE_ANON_KEY,
-  };
-  
-  // Inicializar Hive
-  await Hive.initFlutter();
-  
-  // Registrar adaptadores
-  Hive.registerAdapter(TeamPokemonAdapter());
+  // Cargar variables de entorno
+  await dotenv.load(fileName: ".env");
+
+  // Inicializar Supabase
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
   
   runApp(MyApp());
 }

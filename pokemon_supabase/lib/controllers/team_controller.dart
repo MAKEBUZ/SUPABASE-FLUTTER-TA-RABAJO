@@ -16,32 +16,32 @@ class TeamController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _initServices();
+    loadTeam();
   }
 
-  // Inicializar servicios
-  Future<void> _initServices() async {
+  // Cargar equipo desde Supabase
+  Future<void> loadTeam() async {
     isLoading.value = true;
     try {
-      await _teamService.init();
-      loadTeam();
+      final teamData = await _teamService.getTeam();
+      team.value = teamData;
     } catch (e) {
-      print('Error initializing services: $e');
+      print('Error loading team: $e');
+      Get.snackbar(
+        'Error',
+        'No se pudo cargar el equipo',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading.value = false;
     }
-  }
-
-  // Cargar equipo desde HIVE
-  void loadTeam() {
-    team.value = _teamService.getTeam();
   }
 
   // Agregar Pokemon al equipo
   Future<void> addToTeam(Pokemon pokemon) async {
     try {
       await _teamService.addToTeam(pokemon);
-      loadTeam();
+      await loadTeam();
       Get.snackbar(
         'Éxito',
         '${pokemon.name} agregado al equipo',
@@ -59,10 +59,10 @@ class TeamController extends GetxController {
   // Remover Pokemon del equipo
   Future<void> removeFromTeam(int pokemonId) async {
     try {
-      final pokemon = _teamService.getTeamPokemon(pokemonId);
+      final pokemon = await _teamService.getTeamPokemon(pokemonId);
       await _teamService.removeFromTeam(pokemonId);
       await _databaseService.deleteCustomAttacks(pokemonId);
-      loadTeam();
+      await loadTeam();
       
       if (selectedPokemon.value?.id == pokemonId) {
         selectedPokemon.value = null;
@@ -83,8 +83,12 @@ class TeamController extends GetxController {
   }
 
   // Verificar si un Pokémon está en el equipo
-  bool isInTeam(int pokemonId) {
-    return team.any((pokemon) => pokemon.id == pokemonId);
+  Future<bool> isInTeam(int pokemonId) async {
+    try {
+      return await _teamService.isInTeam(pokemonId);
+    } catch (e) {
+      return false;
+    }
   }
 
   // Seleccionar un Pokemon para ver detalles
@@ -95,18 +99,18 @@ class TeamController extends GetxController {
   // Actualizar ataques de un Pokemon
   Future<void> updatePokemonAttacks(int pokemonId, List<String> newAttacks) async {
     try {
-      // Guardar en SQLite
+      // Guardar en Supabase (tabla pokemon_attacks)
       await _databaseService.saveCustomAttacks(pokemonId, newAttacks);
       
-      // Actualizar en HIVE
+      // Actualizar en Supabase (tabla team_pokemon)
       await _teamService.updatePokemonAttacks(pokemonId, newAttacks);
       
       // Recargar equipo
-      loadTeam();
+      await loadTeam();
       
       // Actualizar Pokemon seleccionado si es el mismo
       if (selectedPokemon.value?.id == pokemonId) {
-        selectedPokemon.value = _teamService.getTeamPokemon(pokemonId);
+        selectedPokemon.value = await _teamService.getTeamPokemon(pokemonId);
       }
       
       Get.snackbar(
@@ -130,17 +134,17 @@ class TeamController extends GetxController {
       return customAttacks;
     }
     
-    final teamPokemon = _teamService.getTeamPokemon(pokemonId);
+    final teamPokemon = await _teamService.getTeamPokemon(pokemonId);
     return teamPokemon?.attacks ?? [];
   }
 
   // Recargar equipo
-  void reloadTeam() {
-    loadTeam();
+  Future<void> reloadTeam() async {
+    await loadTeam();
   }
 
   // Obtener tamaño del equipo
-  int get teamSize => team.length;
+  Future<int> get teamSize async => await _teamService.getTeamSize();
 
   // Limpiar todo el equipo
   Future<void> clearTeam() async {

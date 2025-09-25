@@ -1,29 +1,12 @@
-import 'package:hive/hive.dart';
 import 'pokemon_model.dart';
 
-part 'team_pokemon.g.dart';
-
-@HiveType(typeId: 0)
-class TeamPokemon extends HiveObject {
-  @HiveField(0)
+class TeamPokemon {
   final int id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
   final String imageUrl;
-
-  @HiveField(3)
   final List<String> types;
-
-  @HiveField(4)
   final List<String> weaknesses;
-
-  @HiveField(5)
   List<String> attacks;
-
-  @HiveField(6)
   final Map<String, int> stats;
 
   TeamPokemon({
@@ -46,6 +29,19 @@ class TeamPokemon extends HiveObject {
       weaknesses: pokemon.weaknesses,
       attacks: List<String>.from(pokemon.attacks),
       stats: Map<String, int>.from(pokemon.stats),
+    );
+  }
+
+  // Convertir desde datos de Supabase
+  factory TeamPokemon.fromSupabaseJson(Map<String, dynamic> json) {
+    return TeamPokemon(
+      id: json['pokemon_id'] as int,
+      name: json['name'] as String,
+      imageUrl: json['image_url'] as String,
+      types: List<String>.from(json['types'] as List),
+      weaknesses: List<String>.from(json['weaknesses'] as List),
+      attacks: List<String>.from(json['attacks'] as List),
+      stats: Map<String, int>.from(json['stats'] as Map),
     );
   }
 

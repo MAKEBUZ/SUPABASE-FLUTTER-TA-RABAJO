@@ -226,25 +226,31 @@ class HomeView extends StatelessWidget {
                             Positioned(
                               top: 10,
                               right: 10,
-                              child: Obx(() => FloatingActionButton.small(
-                                onPressed: () {
-                                  if (teamController.isInTeam(controller.pokemon.value!.id)) {
-                                    teamController.removeFromTeam(controller.pokemon.value!.id);
-                                  } else {
-                                    teamController.addToTeam(controller.pokemon.value!);
-                                  }
+                              child: Obx(() => FutureBuilder<bool>(
+                                future: teamController.isInTeam(controller.pokemon.value!.id),
+                                builder: (context, snapshot) {
+                                  final isInTeam = snapshot.data ?? false;
+                                  return FloatingActionButton.small(
+                                    onPressed: () async {
+                                      if (await teamController.isInTeam(controller.pokemon.value!.id)) {
+                                        await teamController.removeFromTeam(controller.pokemon.value!.id);
+                                      } else {
+                                        await teamController.addToTeam(controller.pokemon.value!);
+                                      }
+                                    },
+                                    backgroundColor: isInTeam 
+                                        ? Colors.red.shade600 
+                                        : Colors.white,
+                                    child: Icon(
+                                      isInTeam 
+                                          ? Icons.favorite 
+                                          : Icons.favorite_border,
+                                      color: isInTeam 
+                                          ? Colors.white 
+                                          : Colors.red.shade600,
+                                    ),
+                                  );
                                 },
-                                backgroundColor: teamController.isInTeam(controller.pokemon.value!.id) 
-                                    ? Colors.red.shade600 
-                                    : Colors.white,
-                                child: Icon(
-                                  teamController.isInTeam(controller.pokemon.value!.id) 
-                                      ? Icons.favorite 
-                                      : Icons.favorite_border,
-                                  color: teamController.isInTeam(controller.pokemon.value!.id) 
-                                      ? Colors.white 
-                                      : Colors.red.shade600,
-                                ),
                               )),
                             ),
                           ],
